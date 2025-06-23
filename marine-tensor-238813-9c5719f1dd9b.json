@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "marine-tensor-238813",
+  "private_key_id": "9c5719f1dd9b47206d6a377f37dac9ba2da8d873",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCXieStwsRaE9Ql\nXkJFLGlYzWAIfTRnnMGViAhjmsUY6slx3KORfkGo+V+jR+YBLmUBp+aRVzUY10cw\nPz9nrFXvnnAnW8GWU9XDewoSEeVjVxdk2l0qmw4b8pnRD43nu/ZHBeFhA0NBWgd7\nzZYODCowXouV/oDcwDawmJ5dWazKvOk1CTZTG+3BjMILBPBONhDmt39H8LzvWIwl\n15qwqFFBhU4FE6500CpA4dKiIv9Pq0VIFiVcA+FAiEvYxv73QatPNGt4z9qcn2n5\nbIr3Lhig0cZCZ0MVO+BY/ggU26TO47wDeMIJ2E4hCYfc+u8roHOZ119Ta1eMCCxO\n2CcAne0rAgMBAAECggEAReGTEQY2Igvu0uSqztdyJT9gP8ntNrK1Gs3GgJhIt/rd\ntqI208tTYCbPka6ARJ8ueRsCWpfKpo/wBjHEfXydjIiV07Cej0JN232L4VVbYPoy\nkZGZUSJ72SuA/0Wa/PhS0+HEU0Z751ErDk56GjRF6FRRLnRU3HfPQJTAwu+tnTfW\ntWPxDBHNf+yeugiqO8wSRRRvLuTkTrSZCbr5tRn0k02zT55hDcnUtl6wyNun9ANB\niqF6oTUwCUMNYGwbxtbTfHAxTAPSP+sG6OCuiL2BmFkd1sCqyZ9YTCH1EqrBvqnw\nLNd4UY49psSXO/D7VCObJCnqeQ+Z9ciiphZk5+jAUQKBgQDPWl517i9ZIR03pybF\n/ynxERltI5Dz+ICfqhH6uyhDITlqwCUobL3jcKx+IyrTgZ32fJYbr4U8V+LAUy5z\nzkSXlgWMQsgPx1QwQ6bcmWhDRFKING5K2YW54XQurt0WfGdhMWIFd52wN3g5xEFB\na3W+X+Ol04XUh9gQR4K0VClh9QKBgQC7F0+0jVsXotchkZj5h+ZYPT3O5AwiuQAC\nUWspve+Dxdgwv2LWOvBJwmf94QFHVln4kI1+1YLaHhqr+AnpwJdXfqup7czZ7hof\nXfxfZA7DTZl/9RTb41Pf3CrquV0rbH5LwNQhagFuAsHb21yxsEBDaqqREcKwUpZU\nYuAwVDX+nwKBgAo1ve76onQ2EDU8UslvDgaju+fG141b0CGMg0QgURQ1H5mlCm9a\nI2N+mc/ANYyilj+b1NxaISpefXjQ37muD2yTY4SLiURVoUybGC1GlH6zb4jrY/7l\nhRMpCcp+q74+s+xyPQxd3nLd2Fqn0jrBatPL7u6sYqubYMU0cDgm6L69AoGBAJNZ\nqMzrB/N1rTojEfh1sFWO5j8sHOK8EeXBekVF8n42NC8wjQdtJBLzqjOqIvesau/5\n6XcbchOX4inPEP+pT4j5mvoa8Fwzyx8pRrtacsYfN+YvgF4ujMCjBqoXk+m/aTkA\nhhJLCxU51rTx7++CgRqXx/65njyAzyVnOmrV6DDBAoGAVwefskM9hSPzLZZeVQLN\nDwbvU6AcIymMaBvzw6Se+USg1htQo2eWID5H4MYhBq7efJdWQlqVyU1fKzAFKz6q\n26xr1ph4HRURifJlAkPk8N4rQMWNdpmboNx+n0ddP72TvvZD6VXrdlNTQOgCHTbv\noTpqFajeWALuNaDACECsPzQ=\n-----END PRIVATE KEY-----\n",
+  "client_email": "own-mail-sending@marine-tensor-238813.iam.gserviceaccount.com",
+  "client_id": "113088721155118915899",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/own-mail-sending%40marine-tensor-238813.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
