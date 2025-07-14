@@ -7,13 +7,13 @@ from mail_handler import sending_email
 from model import *
 
 gc = authorize_gspread()
-spreadsheet = gc.open_by_url('https://docs.google.com/spreadsheets/d/1Jjywp-EBUkG_ICkD4PXM9_Tp1E4g1Pigbm4sJxxVHoU/edit?gid=1368181872')
+spreadsheet = gc.open_by_url('https://docs.google.com/spreadsheets/d/1Jjywp-EBUkG_ICkD4PXM9_Tp1E4g1Pigbm4sJxxVHoU/edit?gid=1368181872#gid=1368181872')
 #%%
 # 選擇第一個工作表
-all_res =[]
-for i in range(1, 8):
-    worksheet1 = spreadsheet.worksheet(f'表單回應 {i}')
-    all_records = worksheet1.get_all_records()
+all_res = []
+#%%
+for ws in spreadsheet.worksheets():
+    all_records = ws.get_all_records()
     all_res.extend(all_records)
 # %%
 df = pd.DataFrame(all_res)
@@ -31,6 +31,9 @@ def combine_questions(row):
 
 df['今日問題彙整'] = df.apply(combine_questions, axis=1)
 
+df['時間戳記'] = pd.to_datetime(df['時間戳記'].str.split(' ').str[0], format='%Y/%m/%d', errors='coerce')
+df = df[df['時間戳記'] >= pd.Timestamp('2025-07-07')]
+df['時間戳記'] = df['時間戳記'].astype(str)
 # 以電子郵件分組，彙整所有今日問題
 result = df.groupby('電子郵件地址').agg({
     '今日問題彙整': lambda x: "\n".join(x),
@@ -39,9 +42,9 @@ result = df.groupby('電子郵件地址').agg({
 # 查看結果
 print(result)
 result.values.tolist()
+#%%
 
-
-result_index = 23
+result_index = -2
 text = result.values.tolist()[result_index][1]
 date_list = [t.split()[0] for t in result.values.tolist()[result_index][2].split(', ')]
 content_list = [f'<p style="font-size:16px; color:#4c70a0; font-weight:bold;">{line.strip()}</p>' for line in text.split('\n今日') if line.strip()]
@@ -49,7 +52,7 @@ content_list = [f'<p style="font-size:16px; color:#4c70a0; font-weight:bold;">{l
 for i in range(len(content_list)):
     qmatch = re.search(r'：(.*?)？：', content_list[i]).group(1)
     content_list[i] = re.sub(
-        r'問題：',
+        r'(今日)?問題：',
         f'來自 {date_list[i]} 的你：',
         content_list[i],
         count=1
@@ -60,7 +63,7 @@ for i in range(len(content_list)):
         content_list[i],
         count=1
     )
-    
+
 content_html = '<br>'.join(content_list)
 content_html = '<h2 style="text-align:center"> 每週問題回顧</h2>' + content_html
 
@@ -73,25 +76,28 @@ yen_html = f'<p style="font-size:16px;">by own 募資策劃 Yen</p><div style="t
 
 
 feedback_html = '''
-<h2 style="text-align:center;">你的理想生活是什麼狀態？</h2>
-<p style="font-size:16px; text-align:justify;">這問題來自於某天週末早晨，原先預計要睡到下午來彌補一週上班的疲累，結果7點就清醒了，想著自己怎麼這麼沒用居然睡不著了！！只好認命起床。準備踏進浴室洗漱前，遇到剛好踏出房門準備要去加班的室友。</p>
-<p style="font-size:16px; text-align:justify;">室友：你今天要做什麼？</p>
-<p style="font-size:16px; text-align:justify;">我：哦～等等去健身房運動1小時，回家洗澡吃完早餐後就出門去逛展覽，下午去書店買書再去甜點店看書或是寫手帳吧</p>
-<p style="font-size:16px; text-align:justify;">室友突然用著一種快落淚的語氣回我：這是我的理想退休生活耶，但我現在卻要去公司加班！</p>
-<p style="font-size:16px; text-align:justify;">我忽然意識到，是啊，這正是我退休後想過的生活，運動讓自己情緒穩定、身體健康，閱讀讓自己透過更多人的眼睛認識世界運轉的樣子，逛展覽讓自己的生活有更多啟發，寫手帳則是一種輸入資訊後輸出和自己對話思考的過程。</p>
-<p style="font-size:16px; text-align:justify;">原來我就活在我理想的生活中，找到工作與生活的平衡。先前對於平日上班下班一成不變的生活感到疲乏、不滿意，但其實好好享受每一個當下，不管是與人相處或獨處，只要是自己想要的，就是在理想生活中了。</p>
-<p style="font-size:16px; text-align:justify;">如果想要一個人走走晃晃，有own的6月展覽推薦：<a href="https://www.instagram.com/p/DKZctptOIvI/">https://www.instagram.com/p/DKZctptOIvI/</a> 可以參考！</p>
+<h2 style="text-align:center;">喜歡一天當中的什麼時候？</h2>
+<p style="font-size:16px; text-align:justify;">要問我一天當中喜歡什麼時候？大約是清晨，雖然我並非是一個習慣早起的人，只是覺得，在那個時段才能獲得片刻的庇護。</p>
+<p style="font-size:16px; text-align:justify;">當村上春樹說「世界在清晨甦醒過來，帶著一種沈默的呼吸。」這句充滿生命力卻又不喧囂的氛圍，給人沉靜而有力的感受。不像白天的喧囂，所有的人事物都爭先恐後地叫囂著，讓人只想把耳朵摀起來，甚至把頭埋進沙裡。</p>
+<p style="font-size:16px; text-align:justify;">我最喜歡的，莫過於清晨房間裡透出微光的那種靜謐。光線是柔和的，還帶著一絲涼意，像極了這個世界難得的溫柔。空氣中還瀰漫著一絲夜晚的餘溫，沒有白天那種刺眼的、讓人只想逃離的壓迫感，給人一種平靜的氛圍。</p>
+<p style="font-size:16px; text-align:justify;">如果身邊剛好有朋友或伴侶睡在旁邊，那更是種奢侈的享受，不用擔心誰會打擾，也不用擔心說出口的話會被誰批判。我們可以毫無顧忌地聊著今天能做些什麼，也許是去巷口那家新開的咖啡店，也許是窩在家裡看一部老電影，或者只是單純地聊著那些稀奇古怪的問題：結婚前要不要簽離婚協議書？然後，聊著聊著，就再次沉沉睡去。</p>
+<p style="font-size:16px; text-align:justify;">這段音樂旅程，從獨自觀賞演唱會的忐忑，到勇敢跨足海外獨旅，再到雨中音樂祭的體驗，每一次都是對自我的探索與突破，擁抱未知的可能性，也更懂得在不同情境中尋找屬於自己的快樂。</p>
+<p style="font-size:16px; text-align:justify;">我喜歡清晨，不是因為它多麼充滿希望，而是因為它充滿了「空白」。那空白允許我們暫時放下所有的疲憊和不滿，允許我們在世界真正開始喧囂之前，偷偷喘口氣，做一場只有自己才懂的白日夢。清晨的光，像一雙溫柔的手，輕輕撫慰著被現實折磨得千瘡百孔的靈魂。在那片刻的寧靜中，我們得以充電、喘息，才有力氣繼續面對接下來一整天無休止的喧囂。</p>
+<p style="font-size:16px; text-align:justify;">你呢？你喜歡一天當中的哪個時刻？</p>
+<p style="font-size:16px; text-align:justify;">如果想要一個人走走晃晃，有own的7月展覽推薦：<br>https://www.instagram.com/p/DLpRU_QTstr/</p>
+<p style="font-size:16px; text-align:justify;">📢own即將於9月推出《2026 own Question Diary | 指引者手帳》，陪伴你進行更深層的自我探索，與自己好好相處。</p>
+<p style="font-size:16px; text-align:justify;">歡迎持續關注<a href="https://www.instagram.com/own.bimonthly/">instagram</a>，才不會錯過最新消息✨</p>
 '''
 
 past_q = '''
 <h2 style="text-align:center";>過往靈魂提問</h2>
-<p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/GfT4PAC2TrN52NAh9">靈魂提問週報Q1</a></p>
-<p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/rPm22gKZcpS92fSD6">靈魂提問週報Q2</a></p>
-<p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/dvbguh6Ur6NkErvB9">靈魂提問週報Q3</a></p>
-<p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/VsGE3ygJdtAwGD3NA">靈魂提問週報Q4</a></p>
-<p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/8DNdxKaCTpF5K4gd8">靈魂提問週報Q5</a></p>
-<p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/XQi3bc9AWRDqmgnd8">靈魂提問週報Q6</a></p>
-<p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/bDn38kqco7Y4a89W9">靈魂提問週報Q7</a></p>
+<p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/Wnc4TEvRe445Gtmr6">靈魂提問週報Q1</a></p>
+<p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/1viErqq1jFdk6DJr9">靈魂提問週報Q2</a></p>
+<p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/U9kppXKN2NoHP9u3A">靈魂提問週報Q3</a></p>
+<p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/21D7MieauK8pgZ5h7">靈魂提問週報Q4</a></p>
+<p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/UpLLbgZBa2NS16v48">靈魂提問週報Q5</a></p>
+<p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/y99vJJw7zWojWyGf7">靈魂提問週報Q6</a></p>
+<p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/TG4acrAe47GWGWaG8">靈魂提問週報Q7</a></p>
 '''
 
 start_html = '''
@@ -106,9 +112,10 @@ end_html = '''
 </html>
 '''
 final_html = start_html + banner_html + feedback_html + yen_html + content_html + past_q + end_html
-# %%
-subject = '【靈魂提問週報W1】邀請你回顧：你的獨處與自我探索10'
+# %%    
+subject = '【靈魂提問週報回顧】你喜歡一天當中的什麼時候？'
 sending_email('dogsen1999@gmail.com', subject, final_html)
+sending_email('ujs7171997@gmail.com', subject, final_html)
 # %%
 for i in ['ujs7171997@gmail.com', 'pw39winnie@gmail.com', 'mn1080305@gmail.com']:
     sending_email(i, subject, final_html)
@@ -136,7 +143,7 @@ for i in range(len(result.values.tolist())):
     for i in range(len(content_list)):
         qmatch = re.search(r'：(.*?)？：', content_list[i]).group(1)
         content_list[i] = re.sub(
-            r'問題：',
+            r'(今日)?問題：',
             f'來自 {date_list[i]} 的你：',
             content_list[i],
             count=1
@@ -160,25 +167,29 @@ for i in range(len(result.values.tolist())):
 
 
     feedback_html = '''
-    <h2 style="text-align:center;">你的理想生活是什麼狀態？</h2>
-    <p style="font-size:16px; text-align:justify;">這問題來自於某天週末早晨，原先預計要睡到下午來彌補一週上班的疲累，結果7點就清醒了，想著自己怎麼這麼沒用居然睡不著了！！只好認命起床。準備踏進浴室洗漱前，遇到剛好踏出房門準備要去加班的室友。</p>
-    <p style="font-size:16px; text-align:justify;">室友：你今天要做什麼？</p>
-    <p style="font-size:16px; text-align:justify;">我：哦～等等去健身房運動1小時，回家洗澡吃完早餐後就出門去逛展覽，下午去書店買書再去甜點店看書或是寫手帳吧</p>
-    <p style="font-size:16px; text-align:justify;">室友突然用著一種快落淚的語氣回我：這是我的理想退休生活耶，但我現在卻要去公司加班！</p>
-    <p style="font-size:16px; text-align:justify;">我忽然意識到，是啊，這正是我退休後想過的生活，運動讓自己情緒穩定、身體健康，閱讀讓自己透過更多人的眼睛認識世界運轉的樣子，逛展覽讓自己的生活有更多啟發，寫手帳則是一種輸入資訊後輸出和自己對話思考的過程。</p>
-    <p style="font-size:16px; text-align:justify;">原來我就活在我理想的生活中，找到工作與生活的平衡。先前對於平日上班下班一成不變的生活感到疲乏、不滿意，但其實好好享受每一個當下，不管是與人相處或獨處，只要是自己想要的，就是在理想生活中了。</p>
-    <p style="font-size:16px; text-align:justify;">如果想要一個人走走晃晃，有own的6月展覽推薦：<a href="https://www.instagram.com/p/DKZctptOIvI/">https://www.instagram.com/p/DKZctptOIvI/</a> 可以參考！</p>
+    <h2 style="text-align:center;">喜歡一天當中的什麼時候？</h2>
+    <p style="font-size:16px; text-align:justify;">要問我一天當中喜歡什麼時候？大約是清晨，雖然我並非是一個習慣早起的人，只是覺得，在那個時段才能獲得片刻的庇護。</p>
+    <p style="font-size:16px; text-align:justify;">當村上春樹說「世界在清晨甦醒過來，帶著一種沈默的呼吸。」這句充滿生命力卻又不喧囂的氛圍，給人沉靜而有力的感受。不像白天的喧囂，所有的人事物都爭先恐後地叫囂著，讓人只想把耳朵摀起來，甚至把頭埋進沙裡。</p>
+    <p style="font-size:16px; text-align:justify;">我最喜歡的，莫過於清晨房間裡透出微光的那種靜謐。光線是柔和的，還帶著一絲涼意，像極了這個世界難得的溫柔。空氣中還瀰漫著一絲夜晚的餘溫，沒有白天那種刺眼的、讓人只想逃離的壓迫感，給人一種平靜的氛圍。</p>
+    <p style="font-size:16px; text-align:justify;">如果身邊剛好有朋友或伴侶睡在旁邊，那更是種奢侈的享受，不用擔心誰會打擾，也不用擔心說出口的話會被誰批判。我們可以毫無顧忌地聊著今天能做些什麼，也許是去巷口那家新開的咖啡店，也許是窩在家裡看一部老電影，或者只是單純地聊著那些稀奇古怪的問題：結婚前要不要簽離婚協議書？然後，聊著聊著，就再次沉沉睡去。</p>
+    <p style="font-size:16px; text-align:justify;">這段音樂旅程，從獨自觀賞演唱會的忐忑，到勇敢跨足海外獨旅，再到雨中音樂祭的體驗，每一次都是對自我的探索與突破，擁抱未知的可能性，也更懂得在不同情境中尋找屬於自己的快樂。</p>
+    <p style="font-size:16px; text-align:justify;">我喜歡清晨，不是因為它多麼充滿希望，而是因為它充滿了「空白」。那空白允許我們暫時放下所有的疲憊和不滿，允許我們在世界真正開始喧囂之前，偷偷喘口氣，做一場只有自己才懂的白日夢。清晨的光，像一雙溫柔的手，輕輕撫慰著被現實折磨得千瘡百孔的靈魂。在那片刻的寧靜中，我們得以充電、喘息，才有力氣繼續面對接下來一整天無休止的喧囂。</p>
+    <p style="font-size:16px; text-align:justify;">你呢？你喜歡一天當中的哪個時刻？</p>
+    <p style="font-size:16px; text-align:justify;">如果想要一個人走走晃晃，有own的7月展覽推薦：<br>https://www.instagram.com/p/DLpRU_QTstr/</p>
+    <p style="font-size:16px; text-align:justify;">📢own即將於9月推出《2026 own Question Diary | 指引者手帳》，陪伴你進行更深層的自我探索，與自己好好相處。</p>
+    <p style="font-size:16px; text-align:justify;">歡迎持續關注<a href="https://www.instagram.com/own.bimonthly/">instagram</a>，才不會錯過最新消息✨</p>
+
     '''
 
     past_q = '''
     <h2 style="text-align:center";>過往靈魂提問</h2>
-    <p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/GfT4PAC2TrN52NAh9">靈魂提問週報Q1</a></p>
-    <p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/rPm22gKZcpS92fSD6">靈魂提問週報Q2</a></p>
-    <p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/dvbguh6Ur6NkErvB9">靈魂提問週報Q3</a></p>
-    <p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/VsGE3ygJdtAwGD3NA">靈魂提問週報Q4</a></p>
-    <p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/8DNdxKaCTpF5K4gd8">靈魂提問週報Q5</a></p>
-    <p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/XQi3bc9AWRDqmgnd8">靈魂提問週報Q6</a></p>
-    <p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/bDn38kqco7Y4a89W9">靈魂提問週報Q7</a></p>
+    <p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/Wnc4TEvRe445Gtmr6">靈魂提問週報Q1</a></p>
+    <p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/1viErqq1jFdk6DJr9">靈魂提問週報Q2</a></p>
+    <p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/U9kppXKN2NoHP9u3A">靈魂提問週報Q3</a></p>
+    <p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/21D7MieauK8pgZ5h7">靈魂提問週報Q4</a></p>
+    <p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/UpLLbgZBa2NS16v48">靈魂提問週報Q5</a></p>
+    <p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/y99vJJw7zWojWyGf7">靈魂提問週報Q6</a></p>
+    <p style="text-align:center" style="font-size:16px;"><a href="https://forms.gle/TG4acrAe47GWGWaG8">靈魂提問週報Q7</a></p>
     '''
 
     start_html = '''
@@ -194,6 +205,6 @@ for i in range(len(result.values.tolist())):
     '''
     final_html = start_html + banner_html + feedback_html + yen_html + content_html + past_q + end_html
     personal_gmail = result.values.tolist()[result_index][0]
-    subject = f'【靈魂提問週報 W1】邀請你回顧：你的獨處與自我探索'
+    subject = f'【靈魂提問週報 W3】邀請你回顧：你的獨處與自我探索'
     sending_email(personal_gmail, subject, final_html)
 # %%
